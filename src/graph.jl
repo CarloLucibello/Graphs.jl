@@ -27,6 +27,41 @@ typealias SimpleGraph GenericGraph{Int,IEdge,UnitRange{Int},Vector{IEdge},Vector
 
 typealias Graph{V,E} GenericGraph{V,E,Vector{V},Vector{E},Vector{Vector{E}}}
 
+# ExGraph:
+#   V:          ExVertex
+#   E:          ExEdge
+#   VList:      Vector{ExVertex}
+#   EList:      Vector{ExEdge}
+#   AdjList:    Vector{Vector{ExVertex}}
+#   IncList:    Vector{Vector{ExEdge}}
+#
+typealias ExGraph  Graph{ExVertex,ExEdge}
+
+function ExGraph(n::Integer = 0; is_directed = false)
+    g = Graph{ExVertex,ExEdge}(is_directed, ExVertex[], ExEdge[]
+            , multivecs(ExEdge, n), multivecs(ExEdge, n), Dict{ExVertex,Int}())
+    for i=1:n
+        add_vertex!(g,"")
+    end
+    g
+end
+
+import Graphs.add_vertex!
+add_vertex!(g::ExGraph) = add_vertex!(g, "")
+
+import Base.convert
+function Base.convert(::Type{ExGraph},g::SimpleGraph)
+    n = num_vertices(g)
+    gnew = ExGraph(n, is_directed = is_directed(g))
+    for e in edges(g)
+         u = vertices(gnew)[source(e)]
+         v = vertices(gnew)[target(e)]
+        add_edge!(gnew, u, v)
+    end
+    return gnew
+end
+
+
 # construction
 
 simple_graph(n::Integer; is_directed::Bool=true) =
@@ -36,6 +71,15 @@ simple_graph(n::Integer; is_directed::Bool=true) =
                 multivecs(IEdge, n), # finclist
                 multivecs(IEdge, n), # binclist
                 Dict{Int, Int}()) # indices (not used for simple graph)
+
+function ex_graph(n::Integer = 0; is_directed = false)
+    g = Graph{ExVertex,ExEdge}(is_directed, ExVertex[], ExEdge[]
+            , multivecs(ExEdge, n), multivecs(ExEdge, n), Dict{ExVertex,Int}())
+    for i=1:n
+        add_vertex!(g,"")
+    end
+    g
+end
 
 function graph{V,E}(vs::Vector{V}, es::Vector{E}; is_directed::Bool=true)
     n = length(vs)
@@ -48,7 +92,6 @@ function graph{V,E}(vs::Vector{V}, es::Vector{E}; is_directed::Bool=true)
     end
     return g
 end
-
 
 # required interfaces
 
